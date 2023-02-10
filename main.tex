@@ -5,8 +5,8 @@
 \author{Maximilian Georg Kurzawski}
 \date{27.01.2023}
 \usepackage{graphicx}
-
 \usepackage{listings}
+\usepackage{verbatimbox}
 \begin{document}
 
 \maketitle
@@ -62,10 +62,10 @@ This is why we should try to minimize the number of cache misses.
 The HPC libraries that my NumPy installation uses are:
 
 \begin{itemize}
-\item openblas64__info
-\item blas_ilp64_opt_info
-\item openblas64__lapack_info
-\item lapack_ilp64_opt_info
+    \item openblas64\_\_info
+    \item blas\_ilp64\_opt\_info
+    \item openblas64\_\_lapack\_info
+    \item lapack\_ilp64\_opt\_info
 \end{itemize}
 These were the HPC libraries that my NumPy installation uses. 
 To check this, I used the following code:
@@ -98,21 +98,27 @@ To check this, I used the following code:
 
 %Answer to the questions
 %  How does the bandwidth vary when increasing the STREAM_ARRAY_SIZE and why?
-The bandwidth varies when increasing the STREAM_ARRAY_SIZE because the bandwidth is proportional to the size of the array.
+The bandwidth varies when increasing the STREAM\_ARRAY\_SIZE because the bandwidth is proportional to the size of the array.
 For all of the results: the bandwidth of the Python list is the lowest, the bandwidth of the Array is the second lowest, and the bandwidth of the NumPy array is the highest.
 
 \section{Exercise 3 - PyTest with the Julia Set Code}
 
-This is the test code for the Julia Set code:
+This is the test code for the Julia Set code
+
+
+\begin{minipage}{\linewidth}
 \begin{lstlisting}
 import pytest
-@pytest.mark.parametrize("desired_width,max_iterations", [(1000, 300), (1000, 1000), (10000, 300), (100, 100)])
+@pytest.mark.parametrize("desired_width,max_iterations",
+                [(1000, 300), (1000, 1000),
+                (10000, 300), (100, 100)])
 def test_julia_set(desired_width, max_iterations):
     # In order to achieve this we returned the output variable.
     import JuliaSet as js
-    output = js.calc_pure_python(desired_width=1000, max_iterations=300)
+    output = js.calc_pure_python(desired_width, max_iterations)
     assert sum(output) == 33219980
 \end{lstlisting}
+\end{minipage}
 As you can see for 3.2 we used the pytest.mark.parametrize decorator to test the Julia Set code with different parameters.
 
 
@@ -215,20 +221,176 @@ For Approach using arrays:
     \item array size: 200, Flops/s:  4.864849510306772e+06
 \end{itemize}
 
-\subsubsection{Plot the results.}
-
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.5\textwidth]{numpy.png}
+    \includegraphics[width=\textwidth]{Exercise4_plot.png}
     \caption{Numpy}
     \label{fig:numpy}
 \end{figure}
 
+\subsubsection{How do the FLOPS/s you measured compares to the theoretical peak of your processor (if we assume that we do one operation per cycle, then the peak is the clock frequency value)}
 
+If we divide the theoretical peak of the processor by the calculated value we are getting a percentage that indicates the processors utilisation.
+A lower percentage indicates that the processor is not being utilized efficiently, whereas a higher percentage indicates that the processor is being utilized efficiently.
+Theoretical peak FLOPS are often not attainable in real-world applications due to various factors such as memory access times, branching, and parallelism. 
 
 
 
 \section{Exercise 5 - A Python Discrete Fourier Transform}
+
+\subsection{Develop a DFT in Python and a unit test with pytest to check the calculation's correctness. Also, use the Python logging module to log the results. The data structures (lists, array, or NumPy) are of your choice.}
+
+This is the essential part of the dft function:
+
+
+\begin{minipage}{\linewidth}
+\begin{verbatim}
+    for k in range(n_n):
+        for j in range(n_n):
+            xr_o[k] += x_r[j] * \
+                math.cos(j * k * pi_2 / n_n) + x_i[j] \
+                * math.sin(j * k * pi_2 / n_n)
+            xi_o[k] += -x_r[j] * \
+                math.sin(j * k * pi_2 / n_n) + x_i[j] \
+                * math.cos(j * k * pi_2 / n_n)
+\end{verbatim}
+\end{minipage}
+
+And the following is the according test:
+
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}
+    xr = [1, 2, 3, 4]
+    xi = [0, 0, 0, 0]
+    N = len(xr)
+    Xr_o = [0] * N
+    Xi_o = [0] * N
+    dft.dft(xr, xi, Xr_o, Xi_o, N)
+    expected_Xr_o = [10, -2, -2, -2]
+    expected_Xi_o = [0.0, 2, 0, -2]
+    for i in range(N):
+        assert math.isclose(Xr_o[i], 
+                            expected_Xr_o[i], 
+                            abs_tol=1e-6)
+        assert math.isclose(Xi_o[i], 
+                            expected_Xi_o[i], 
+                            abs_tol=1e-6)
+\end{lstlisting}
+\end{minipage}
+
+
+And for the logging:
+
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}
+mk@DESKTOP-QOQRB5F:~/HPC/Task2/DFT$ python dft.py
+INFO:root:Calculating DFT of [1, 2, 3, 4], [0, 0, 0, 0]
+INFO:root:Result is [10.0, -2.0000000000000004, 
+                    -2.0, -1.9999999999999982], 
+                    [0.0, 1.9999999999999996, 
+                    -9.797174393178826e-16, 
+                    -2.000000000000001]
+\end{lstlisting}
+\end{minipage}
+
+\subsection{Task 5.2 Document the code using docstrings and generate automatic HTML documentation.}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{sphinx_screen.PNG}
+\caption{Sphinx screenshot}
+\end{figure}
+
+\subsection{Task 5.3 Check your code using a Python linter. Address the issues raised by the linter, including the style issues. To address some of the issues, you can use a Python auto-formatter.}
+
+
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}
+mk@DESKTOP-QOQRB5F:~/HPC/Task2/DFT$ pylint dft.py
+--------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
+\end{lstlisting}
+\end{minipage}
+
+\subsection{Task 5.4 Measure the execution time, varying the input size from 8 to 1024 elements, and plot it.}
+
+\begin{figure}[h]
+\centering
+\begin{minipage}[c]{\textwidth}
+\includegraphics[width=0.8\textwidth]{dft_time.png}
+\caption{DFT Times}
+\end{minipage}
+\end{figure}
+
+
+\subsection{Task 5.5 Profiler}
+
+The first profiler I thought would be good to run was cProfile. It is always good to know how many calls are made to which function and how much time these need.
+This is the result (I will be showing the first 8 functions):
+\begin{minipage}{\linewidth}
+\begin{verbatim}
+    
+
+         4279269 function calls (4276860 primitive calls) in 2.735 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    138/1    0.001    0.000    2.735    2.735 {built-in method builtins.exec}
+        1    0.000    0.000    2.735    2.735 dft.py:1(<module>)
+        1    0.000    0.000    2.648    2.648 dft.py:40(main)
+        1    0.000    0.000    2.648    2.648 dft.py:36(test_DFT)
+        2    2.293    1.146    2.648    1.324 dft.py:12(dft)
+  2097184    0.179    0.000    0.179    0.000 {built-in method math.cos}
+  2097184    0.176    0.000    0.176    0.000 {built-in method math.sin}
+       13    0.001    0.000    0.172    0.013 __init__.py:1(<module>)
+\end{verbatim}
+\end{minipage}
+
+
+Now to get a more indepth understanding on the seperate lines and their "complexity", I went ahead and used the line\_profiler to get line by line profiling results
+
+
+\begin{minipage}{\linewidth}
+\begin{verbatim}
+    26      1024        149.3      0.1      0.0      for k in range(n_n):
+    27   1048576     160607.8      0.2      4.7          for j in range(n_n):
+    28   2097152     569190.1      0.3     16.7              xr_o[k] += x_r[j] * \
+    29   2097152    1027032.7      0.5     30.1                  math.cos(j * k * pi_2 / n_n) + x_i[j] * math.sin(j * k * pi_2 / n_n)
+    30   2097152     621879.7      0.3     18.3              xi_o[k] += -x_r[j] * \
+    31   2097152    1027778.9      0.5     30.2                  math.sin(j * k * pi_2 / n_n) + x_i[j] * math.cos(j * k * pi_2 / n_n)
+\end{verbatim}
+\end{minipage}
+
+
+As with the first assignment, I would love to check the results provided by the memory profiler. But this is my output.
+
+\begin{minipage}{\linewidth}
+\begin{verbatim}
+mk@DESKTOP-QOQRB5F:~/HPC/Task2/DFT$ python -m memory_profiler dft.py
+mk@DESKTOP-QOQRB5F:~/HPC/Task2/DFT$ 
+\end{verbatim}
+\end{minipage}
+
+
+I was however able to perform it on another system.
+Here is the output:
+
+\begin{minipage}{\linewidth}
+\begin{verbatim}
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    26   79.746 MiB    0.000 MiB        1025       for k in range(n_n):
+    27   79.746 MiB    0.000 MiB     1049600           for j in range(n_n):
+    28   79.746 MiB    0.000 MiB     3145728               xr_o[k] += x_r[j] * \
+    29   79.746 MiB    0.000 MiB     2097152                   math.cos(j * k * pi_2 / n_n) + x_i[j] * math.sin(j * k * pi_2 / n_n)
+    30   79.746 MiB    0.301 MiB     3145728               xi_o[k] += -x_r[j] * \
+    31   79.746 MiB    0.000 MiB     2097152                   math.sin(j * k * pi_2 / n_n) + x_i[j] * math.cos(j * k * pi_2 / n_n)
+\end{verbatim}
+\end{minipage}
 
 
 \section{Exercise 6 - Experiment with the Python Debugger}
@@ -241,8 +403,18 @@ Advantages of using a debugger:
     \item Debugging in Real-Time: Debuggers allow you to debug your code in real-time, giving you immediate feedback on what is happening in your code as it executes.
 \end{itemize}
 
+My personal struggles with using the pdb debugger were limited. 
+Since I had a bit of experience using the command line interface with the gdb debugger, which had similar instructions.
+Also the command:
+\begin{lstlisting}[language=bash]
+  $ pdb -p (pid of running process)
+\end{lstlisting}
+, to attach pdb to a running process, was one new thing I learned about these debuggers.
 
 
 
+\section{Bonus}
+
+Will be handed in later.
 
 \end{document}
