@@ -2,7 +2,7 @@ import time
 import array
 import numpy as np
 
-STREAM_ARRAY_SIZE = 100000000
+STREAM_ARRAY_SIZE = 10000
 STREAM_ARRAY_TYPE = 'd'
 
 def stream_python_list():
@@ -116,13 +116,88 @@ def main():
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    times = main()
-    # plot only points and not lines
-    plt.plot(times[0], 'o', label="Python list")
-    plt.plot(times[1], 'o', label="Array")
-    plt.plot(times[2], 'o', label="Numpy")
+    labels = ["copy", "scale", "sum", "triad"]
+    bandwith_copy_python_list = []
+    bandwith_scale_python_list = []
+    bandwith_sum_python_list = []
+    bandwith_triad_python_list = []
+    bandwith_copy_array = []
+    bandwith_scale_array = []
+    bandwith_sum_array = []
+    bandwith_triad_array = []
+    bandwith_copy_numpy = []
+    bandwith_scale_numpy = []
+    bandwith_sum_numpy = []
+    bandwith_triad_numpy = []
+
+    while STREAM_ARRAY_SIZE < 100000000:
+        times = main()
+    # 
+        c = STREAM_ARRAY_SIZE
+        # calculate MB/s for each operation
+        array_types = [list, array.array, np.ndarray]
+        d = 1
+        import sys
+        for t in times:
+            for i in range(len(t)):
+                t[i] = (2 * sys.getsizeof(array_types[d]) * STREAM_ARRAY_SIZE / 2**20) / t[i]
+        # plot
+        for index, t in enumerate(times):
+            if index == 0:
+                bandwith_copy_python_list.append(t[0])
+                bandwith_scale_python_list.append(t[1])
+                bandwith_sum_python_list.append(t[2])
+                bandwith_triad_python_list.append(t[3])
+            elif index == 1:
+                bandwith_copy_array.append(t[0])
+                bandwith_scale_array.append(t[1])
+                bandwith_sum_array.append(t[2])
+                bandwith_triad_array.append(t[3])
+            else:
+                bandwith_copy_numpy.append(t[0])
+                bandwith_scale_numpy.append(t[1])
+                bandwith_sum_numpy.append(t[2])
+                bandwith_triad_numpy.append(t[3])
+        print("STREAM_ARRAY_SIZE: ", STREAM_ARRAY_SIZE)
+        STREAM_ARRAY_SIZE *= 10
+        
+    # plot by different implementations
+    plt.plot(bandwith_copy_python_list, label="copy_python_list")
+    plt.plot(bandwith_scale_python_list, label="scale_python_list")
+    plt.plot(bandwith_sum_python_list, label="sum_python_list")
+    plt.plot(bandwith_triad_python_list, label="triad_python_list")
+    # add labels
+    plt.xlabel("STREAM_ARRAY_SIZE, 10^8")
+    plt.ylabel("Bandwith (MB/s)")
+    plt.title("Bandwith Python list")
     plt.legend()
-    # save it to a file 
-    plt.savefig("plot.png")
+    plt.savefig("bandwith_Python_list.png")
+    plt.clf()
+
+    # plot by different operations
+    plt.plot(bandwith_copy_array, label="copy_array")
+    plt.plot(bandwith_scale_array, label="scale_array")
+    plt.plot(bandwith_sum_array, label="sum_array")
+    plt.plot(bandwith_triad_array, label="triad_array")
+    plt.xlabel("STREAM_ARRAY_SIZE, 10^8")
+    plt.ylabel("Bandwith (MB/s)")
+    plt.title("Bandwith Python array")
+    plt.legend()
+    plt.savefig("bandwith_python_array.png")
+    plt.clf()
+
+
+
+    plt.plot(bandwith_copy_numpy, label="copy_numpy")
+    plt.plot(bandwith_scale_numpy, label="scale_numpy")
+    plt.plot(bandwith_sum_numpy, label="sum_numpy")
+    plt.plot(bandwith_triad_numpy, label="triad_numpy")
+    plt.xlabel("STREAM_ARRAY_SIZE, 10^8")
+    plt.ylabel("Bandwith (MB/s)")
+    plt.title("Bandwith Numpy")
+    plt.legend()
+    plt.savefig("bandwith_numpy.png")
+    plt.clf()
+
 
 
