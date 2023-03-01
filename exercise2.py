@@ -1,11 +1,10 @@
 import time
 import array
 import numpy as np
+from pyrsistent import s
 
-STREAM_ARRAY_SIZE = 10000
-STREAM_ARRAY_TYPE = 'd'
 
-def stream_python_list():
+def stream_python_list(STREAM_ARRAY_TYPE, STREAM_ARRAY_SIZE):
     a = [1.0] * STREAM_ARRAY_SIZE
     b = [2.0] * STREAM_ARRAY_SIZE
     c = [0.0] * STREAM_ARRAY_SIZE
@@ -39,7 +38,8 @@ def stream_python_list():
 
     return times
 
-def stream_array():
+
+def stream_array(STREAM_ARRAY_TYPE, STREAM_ARRAY_SIZE):
     a = array.array(STREAM_ARRAY_TYPE, [1.0] * STREAM_ARRAY_SIZE)
     b = array.array(STREAM_ARRAY_TYPE, [2.0] * STREAM_ARRAY_SIZE)
     c = array.array(STREAM_ARRAY_TYPE, [0.0] * STREAM_ARRAY_SIZE)
@@ -73,7 +73,8 @@ def stream_array():
 
     return times
 
-def stream_numpy():
+
+def stream_numpy(STREAM_ARRAY_TYPE, STREAM_ARRAY_SIZE):
     a = np.ones(STREAM_ARRAY_SIZE, dtype=STREAM_ARRAY_TYPE)
     b = np.ones(STREAM_ARRAY_SIZE, dtype=STREAM_ARRAY_TYPE) * 2
     c = np.zeros(STREAM_ARRAY_SIZE, dtype=STREAM_ARRAY_TYPE)
@@ -103,15 +104,27 @@ def stream_numpy():
 
     return times
 
-def main():
-    times_python_list = stream_python_list()
-    times_array = stream_array()
-    times_numpy = stream_numpy()
+
+def main(STREAM_ARRAY_TYPE, STREAM_ARRAY_SIZE):
+    times_python_list = stream_python_list(
+        STREAM_ARRAY_TYPE, STREAM_ARRAY_SIZE)
+    times_array = stream_array(STREAM_ARRAY_TYPE, STREAM_ARRAY_SIZE)
+    times_numpy = stream_numpy(STREAM_ARRAY_TYPE, STREAM_ARRAY_SIZE)
 
     print("Python list: ", times_python_list)
     print("Array: ", times_array)
     print("Numpy: ", times_numpy)
     return (times_python_list, times_array, times_numpy)
+
+
+# Without Cython:
+#  real    0m10.768s
+#  user    0m10.276s
+#  sys     0m2.168s
+# With Cython (no type declarations):
+#  real    0m9.435s
+#  user    0m9.118s
+#  sys     0m1.736s
 
 
 if __name__ == "__main__":
@@ -129,9 +142,11 @@ if __name__ == "__main__":
     bandwith_scale_numpy = []
     bandwith_sum_numpy = []
     bandwith_triad_numpy = []
+    STREAM_ARRAY_SIZE = 10000
+    STREAM_ARRAY_TYPE = 'd'
 
     while STREAM_ARRAY_SIZE < 100000000:
-        times = main()
+        times = main(STREAM_ARRAY_TYPE, STREAM_ARRAY_SIZE)
     # 
         c = STREAM_ARRAY_SIZE
         # calculate MB/s for each operation
@@ -201,3 +216,5 @@ if __name__ == "__main__":
 
 
 
+# Plot the bandwidth results varying the arrays' size. Answer the question: how does the bandwidth measured with Cython code compare to bandwidth obtained in Assignment II.
+# 
